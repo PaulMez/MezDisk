@@ -12,7 +12,7 @@ from textual.widgets import Footer, Header, Static, Tree
 from .filetypes import file_style
 from .models import Node, ScanResult
 from .treemap import Treemap, TreemapItem
-from .util import format_bytes
+from .util import format_bytes, largest_leaf_files
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,22 +124,29 @@ class MezDiskApp(App[None]):
     def _render_treemap(self, node: Node) -> None:
         widget = self.query_one("#treemap", Static)
 
-        if not node.children:
-            widget.update("(no children)")
+        selected_files, other_size = largest_leaf_files(node, max_items=self._config.treemap_items)
+        if not selected_files and other_size <= 0:
+            widget.update("(no files)")
             return
 
-        children = sorted(node.children, key=lambda c: c.size_bytes, reverse=True)
-        selected = children[: self._config.treemap_items]
-        remainder = children[self._config.treemap_items :]
+        def label_for(f: Node) -> str:
+            if node.is_dir:
+                try:
+                    return str(f.path.relative_to(node.path))
+                except ValueError:
+                    return str(f.path)
+            return f.name
 
         items: list[TreemapItem] = []
-        for child in selected:
-            color = "bright_blue" if child.is_dir else file_style(child.path).color
-            items.append(TreemapItem(label=child.name, value=float(child.size_bytes), color=color))
+        for f in selected_files:
+            items.append(
+                TreemapItem(
+                    label=label_for(f), value=float(f.size_bytes), color=file_style(f.path).color
+                )
+            )
 
-        other = sum(c.size_bytes for c in remainder)
-        if other > 0:
-            items.append(TreemapItem(label="Other", value=float(other), color="grey37"))
+        if other_size > 0:
+            items.append(TreemapItem(label="Other", value=float(other_size), color="grey37"))
 
         widget.update(Treemap(items, height=self._config.treemap_height))
 

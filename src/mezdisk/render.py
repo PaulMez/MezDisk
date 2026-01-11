@@ -14,7 +14,7 @@ from rich.tree import Tree
 from .filetypes import file_style
 from .models import Node, ScanResult
 from .treemap import Treemap, TreemapItem
-from .util import Palette, format_bytes
+from .util import Palette, format_bytes, largest_leaf_files
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,24 +105,26 @@ def build_tree(node: Node, *, total: int, max_depth: int) -> Tree:
 
 
 def build_treemap_items(node: Node, *, max_items: int) -> list[TreemapItem]:
-    palette = Palette()
-    if not node.children:
+    selected_files, other_size = largest_leaf_files(node, max_items=max_items)
+    if not selected_files and other_size <= 0:
         return []
 
-    children = sorted(node.children, key=lambda c: c.size_bytes, reverse=True)
-    if len(children) <= max_items:
-        selected = children
-        remainder: list[Node] = []
-    else:
-        selected = children[:max_items]
-        remainder = children[max_items:]
+    def label_for(f: Node) -> str:
+        if node.is_dir:
+            try:
+                return str(f.path.relative_to(node.path))
+            except ValueError:
+                return str(f.path)
+        return f.name
 
     items: list[TreemapItem] = []
-    for child in selected:
-        color = palette.dir_color if child.is_dir else file_style(child.path).color
-        items.append(TreemapItem(label=child.name, value=float(child.size_bytes), color=color))
+    for f in selected_files:
+        items.append(
+            TreemapItem(
+                label=label_for(f), value=float(f.size_bytes), color=file_style(f.path).color
+            )
+        )
 
-    other_size = sum(c.size_bytes for c in remainder)
     if other_size > 0:
         items.append(TreemapItem(label="Other", value=float(other_size), color="grey37"))
 
