@@ -2,13 +2,11 @@
 
 WinDirStat-like disk usage viewer for the terminal.
 
-This `main` branch currently ships a Rich-based (non-interactive) report:
+MezDisk scans a path, aggregates sizes, and renders a visual overview:
 
 - Tree view (size-sorted)
 - Treemap-like blocks (colored by file type)
 - “Largest items” table
-
-If you want an interactive UI (keyboard-driven panes), see branch `textual-mvp`.
 
 ## Install
 
@@ -29,11 +27,28 @@ python -m pip install -e .
 
 ## Run
 
+### Interactive (Textual UI) (default)
+
 ```bash
 mezdisk .
-mezdisk /some/path --max-depth 4
-mezdisk /some/path --follow-symlinks
-mezdisk /some/path --tree-depth 5 --treemap-items 40 --treemap-height 22
+mezdisk /some/path
+```
+
+- Quit: press `q`
+- Select a directory/file in the tree to update the treemap + largest table.
+
+### Rich report (non-interactive)
+
+```bash
+mezdisk . --ui rich
+```
+
+### Useful options
+
+```bash
+mezdisk . --max-depth 4
+mezdisk . --follow-symlinks
+mezdisk . --tree-depth 5 --treemap-items 40 --treemap-height 22
 ```
 
 ## Develop

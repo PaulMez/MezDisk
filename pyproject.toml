@@ -8,6 +8,7 @@ authors = [{ name = "MezDisk contributors" }]
 dependencies = [
   "rich>=13.7",
   "typer>=0.9",
+  "textual>=0.50",
 ]
 
 [project.scripts]
