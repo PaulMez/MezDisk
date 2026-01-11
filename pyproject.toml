@@ -1,0 +1,36 @@
+[project]
+name = "mezdisk"
+version = "0.1.0"
+description = "Terminal disk usage visualization (WinDirStat-like)."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "MezDisk contributors" }]
+dependencies = [
+  "rich>=13.7",
+  "typer>=0.9",
+]
+
+[project.scripts]
+mezdisk = "mezdisk.cli:app"
+
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+]
